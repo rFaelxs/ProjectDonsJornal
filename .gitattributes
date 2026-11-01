@@ -1,0 +1,21 @@
+# Normaliza quebras de linha no repositório. Sem isto o Git avisa em cada commit
+# feito no Windows, e um diff pode virar "arquivo todo alterado".
+* text=auto eol=lf
+
+# Arquivos que o Visual Studio e o MSBuild preferem em CRLF.
+*.sln       text eol=crlf
+*.slnx      text eol=crlf
+*.csproj    text eol=crlf
+*.props     text eol=crlf
+*.targets   text eol=crlf
+
+# Binários: nunca converter.
+*.pdf       binary
+*.png       binary
+*.jpg       binary
+*.ico       binary
+*.dump      binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.otf       binary
