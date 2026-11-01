@@ -91,6 +91,7 @@ static int Ajuda()
 
         Catálogo e feeds (M1):
           seed [--arquivo <caminho>]          carrega o catalogo.json no banco
+               [--forcar-embeddings]          regera todos os embeddings
           validar-feeds [--categoria <slug>]  testa as URLs dos feeds
                         [--atualizar]         grava o resultado em feed.ativo
           validar-url <url> ...               valida URLs soltas, sem tocar no banco

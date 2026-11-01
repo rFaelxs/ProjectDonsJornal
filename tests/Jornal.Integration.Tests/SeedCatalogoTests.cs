@@ -4,7 +4,9 @@ using Jornal.Infrastructure.Catalogo;
 using Jornal.Infrastructure.Persistencia;
 using Jornal.Integration.Tests.Apoio;
 using Microsoft.EntityFrameworkCore;
+using Jornal.Core.Comum;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace Jornal.Integration.Tests;
 
@@ -44,11 +46,16 @@ public class SeedCatalogoTests(BancoFixture banco)
         };
 
     private (SeedCatalogoService Seed, GeradorEmbeddingFake Gerador, JornalDbContext Db)
-        Montar()
+        Montar(string modelo = "bge-m3")
     {
         var db = banco.CriarContexto();
         var gerador = new GeradorEmbeddingFake();
-        var seed = new SeedCatalogoService(db, gerador, NullLogger<SeedCatalogoService>.Instance);
+        var opcoes = new JornalOptions();
+        opcoes.Ai.Embedding.Model = modelo;
+
+        var seed = new SeedCatalogoService(
+            db, gerador, Options.Create(opcoes), NullLogger<SeedCatalogoService>.Instance);
+
         return (seed, gerador, db);
     }
 
@@ -121,6 +128,47 @@ public class SeedCatalogoTests(BancoFixture banco)
         var categoria = await db2.Categorias.AsNoTracking().FirstAsync();
         categoria.Descricao.Should().Be("Descrição NOVA, que muda o hash.");
         categoria.Embedding.Should().NotBeEquivalentTo(embeddingAntigo);
+    }
+
+    [Fact]
+    public async Task CA_02_1_trocar_o_modelo_de_embedding_regera_tudo()
+    {
+        await banco.LimparCatalogoAsync();
+
+        var (primeiro, _, db1) = Montar("bge-m3");
+        await primeiro.ExecutarAsync(Catalogo(), CancellationToken.None);
+        await db1.DisposeAsync();
+
+        // A spec 02 manda regerar quando o modelo muda: vetores de modelos diferentes não
+        // são comparáveis entre si, então o acervo ficaria inconsistente.
+        var (segundo, gerador, db2) = Montar("outro-modelo");
+        await using var _ = db2;
+
+        var resumo = await segundo.ExecutarAsync(Catalogo(), CancellationToken.None);
+
+        resumo.EmbeddingsGerados.Should().Be(2, "categoria e subtema precisam de vetor novo");
+        gerador.Chamadas.Should().Be(1);
+        resumo.CategoriasAtualizadas.Should().Be(0, "o texto não mudou, só o modelo");
+    }
+
+    [Fact]
+    public async Task Forcar_embeddings_regera_mesmo_sem_mudanca()
+    {
+        await banco.LimparCatalogoAsync();
+
+        var (primeiro, _, db1) = Montar();
+        await primeiro.ExecutarAsync(Catalogo(), CancellationToken.None);
+        await db1.DisposeAsync();
+
+        // Recuperação de modelo corrompido: mesmo nome, mesmos textos, vetores errados.
+        var (segundo, gerador, db2) = Montar();
+        segundo.ForcarEmbeddings = true;
+        await using var _ = db2;
+
+        var resumo = await segundo.ExecutarAsync(Catalogo(), CancellationToken.None);
+
+        resumo.EmbeddingsGerados.Should().Be(2);
+        gerador.Chamadas.Should().Be(1);
     }
 
     [Fact]

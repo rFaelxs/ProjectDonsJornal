@@ -1,10 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
 using Jornal.Core.Catalogo;
+using Jornal.Core.Comum;
 using Jornal.Infrastructure.Persistencia;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Jornal.Infrastructure.Catalogo;
 
@@ -15,8 +17,16 @@ namespace Jornal.Infrastructure.Catalogo;
 public class SeedCatalogoService(
     JornalDbContext db,
     IEmbeddingGenerator<string, Embedding<float>> gerador,
+    IOptions<JornalOptions> options,
     ILogger<SeedCatalogoService> log) : ISeedCatalogo
 {
+    /// <summary>
+    /// Regera todos os embeddings, mesmo sem mudança de texto nem de modelo. Serve para
+    /// recuperar de um modelo baixado corrompido, que mantém o nome mas devolve vetor
+    /// errado — aconteceu de verdade no M2.
+    /// </summary>
+    public bool ForcarEmbeddings { get; set; }
+
     public async Task<SeedResumo> ExecutarAsync(CatalogoArquivo catalogo, CancellationToken ct)
     {
         var categoriasCriadas = 0;
@@ -55,7 +65,7 @@ public class SeedCatalogoService(
             }
 
             AgendarEmbedding(pendentes, categoria.Nome, categoria.Descricao,
-                categoria.EmbeddingHash,
+                categoria.EmbeddingHash, ModeloAtual, ForcarEmbeddings,
                 (vetor, hash) => { categoria.Embedding = vetor; categoria.EmbeddingHash = hash; });
 
             foreach (var subArquivo in arquivo.Subtemas)
@@ -81,7 +91,7 @@ public class SeedCatalogoService(
                 }
 
                 AgendarEmbedding(pendentes, subtema.Nome, subtema.Descricao,
-                    subtema.EmbeddingHash,
+                    subtema.EmbeddingHash, ModeloAtual, ForcarEmbeddings,
                     (vetor, hash) => { subtema.Embedding = vetor; subtema.EmbeddingHash = hash; });
             }
 
@@ -127,22 +137,31 @@ public class SeedCatalogoService(
     /// <summary>Um embedding a gerar: o texto, o hash dele e onde guardar o resultado.</summary>
     private record EmbeddingPendente(string Texto, string Hash, Action<float[], string> Aplicar);
 
+    private string ModeloAtual => options.Value.Ai.Embedding.Model;
+
     /// <summary>
-    /// Só agenda se o hash do texto mudou. É este desvio que faz a segunda execução do seed
-    /// não gastar nenhuma chamada ao gerador (CA-02.1).
+    /// Só agenda se o hash mudou. É este desvio que faz a segunda execução do seed não
+    /// gastar nenhuma chamada ao gerador (CA-02.1).
+    ///
+    /// O nome do modelo entra no hash, não só o texto: a spec 02 manda regerar também
+    /// quando o modelo de embedding muda, e vetores de modelos diferentes não são
+    /// comparáveis entre si. Assim a troca de modelo invalida o hash sozinha, sem coluna
+    /// nova no schema.
     /// </summary>
     private static void AgendarEmbedding(
         List<EmbeddingPendente> pendentes,
         string nome,
         string descricao,
         string? hashAtual,
+        string modelo,
+        bool forcar,
         Action<float[], string> aplicar)
     {
         // O embedding sai de "{nome}: {descricao}" — o nome sozinho gera vetor pobre (RF09).
         var texto = $"{nome}: {descricao}";
-        var hash = Sha256(texto);
+        var hash = Sha256($"{modelo}|{texto}");
 
-        if (hash == hashAtual) return;
+        if (!forcar && hash == hashAtual) return;
 
         pendentes.Add(new EmbeddingPendente(texto, hash, aplicar));
     }

@@ -46,6 +46,17 @@ public class JornalDbContext(DbContextOptions<JornalDbContext> options) : DbCont
     public DbSet<AjustePerfil> AjustesPerfil => Set<AjustePerfil>();
     public DbSet<CicloExecucao> CiclosExecucao => Set<CicloExecucao>();
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // Toda data vai para o banco em UTC (spec 01). Sem esta convenção, um feed que
+        // publica com offset -03:00 derruba o INSERT: o Npgsql só aceita offset 0 em
+        // timestamptz.
+        configurationBuilder.Properties<DateTimeOffset>()
+            .HaveConversion<Conversores.DataUtcConverter>();
+        configurationBuilder.Properties<DateTimeOffset?>()
+            .HaveConversion<Conversores.DataUtcNullableConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("vector");

@@ -20,3 +20,20 @@ public class EmbeddingComparer() : ValueComparer<float[]?>(
     (a, b) => a == null ? b == null : b != null && a.SequenceEqual(b),
     v => v == null ? 0 : v.Aggregate(17, (acc, f) => acc * 31 + f.GetHashCode()),
     v => v == null ? null : v.ToArray());
+
+/// <summary>
+/// Converte toda data para UTC antes de gravar. O Npgsql só aceita offset 0 em
+/// <c>timestamptz</c>, e os feeds brasileiros mandam datas com <c>-03:00</c>. A spec 01 já
+/// manda guardar em UTC e exibir em America/Sao_Paulo, então esta é a regra, não um remendo.
+///
+/// Fica como convenção global para não depender de cada ponto do código lembrar de chamar
+/// ToUniversalTime().
+/// </summary>
+public class DataUtcConverter() : ValueConverter<DateTimeOffset, DateTimeOffset>(
+    dominio => dominio.ToUniversalTime(),
+    provider => provider.ToUniversalTime());
+
+/// <inheritdoc cref="DataUtcConverter"/>
+public class DataUtcNullableConverter() : ValueConverter<DateTimeOffset?, DateTimeOffset?>(
+    dominio => dominio == null ? null : dominio.Value.ToUniversalTime(),
+    provider => provider == null ? null : provider.Value.ToUniversalTime());

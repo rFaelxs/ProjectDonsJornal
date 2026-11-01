@@ -52,6 +52,14 @@ public static class ComandoSeed
         using var escopo = sp.CreateScope();
         var seed = escopo.ServiceProvider.GetRequiredService<ISeedCatalogo>();
 
+        if (args.TemFlag("forcar-embeddings"))
+        {
+            if (seed is Infrastructure.Catalogo.SeedCatalogoService concreto)
+                concreto.ForcarEmbeddings = true;
+
+            Console.WriteLine("Regerando todos os embeddings (--forcar-embeddings).");
+        }
+
         SeedResumo resumo;
         try
         {

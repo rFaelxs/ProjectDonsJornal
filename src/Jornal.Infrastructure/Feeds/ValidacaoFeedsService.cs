@@ -82,12 +82,13 @@ public class ValidacaoFeedsService(
     {
         var minimo = options.Value.Perfil.MinimoFeedsAtivosPorCategoria;
 
+        // O filtro e a ordenação vêm antes da projeção: o EF não traduz um Where sobre
+        // propriedade de record já projetado.
         return await db.Categorias
-            .Where(c => c.Ativa)
+            .Where(c => c.Ativa && c.Feeds.Count(f => f.Ativo) < minimo)
+            .OrderBy(c => c.Slug)
             .Select(c => new CategoriaSemFeedsSuficientes(
                 c.Slug, c.Nome, c.Feeds.Count(f => f.Ativo), minimo))
-            .Where(x => x.FeedsAtivos < minimo)
-            .OrderBy(x => x.Slug)
             .ToListAsync(ct);
     }
 }

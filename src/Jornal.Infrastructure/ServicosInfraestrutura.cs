@@ -29,7 +29,11 @@ public static class ServicosInfraestrutura
                 "ConnectionStrings:Jornal não configurada. Veja o appsettings.json.");
 
         services.AddDbContext<JornalDbContext>(options => options
-            .UseNpgsql(conexao, npgsql => npgsql.UseVector())
+            // SplitQuery: o seed carrega categoria com subtemas e feeds de uma vez. Numa
+            // consulta só isso vira produto cartesiano, e o EF avisa sobre o custo.
+            .UseNpgsql(conexao, npgsql => npgsql
+                .UseVector()
+                .UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
             .UseSnakeCaseNamingConvention());
 
         var opcoes = configuration.GetSection(JornalOptions.Secao).Get<JornalOptions>()

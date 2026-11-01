@@ -70,6 +70,12 @@ public class Indexador(
                 throw new InvalidOperationException(
                     $"O gerador devolveu {vetores.Count} embeddings para {textos.Count} textos.");
 
+            // Vetores já aceitos neste lote, que ainda não foram para o banco. Sem isto, duas
+            // notícias idênticas coletadas na mesma execução escapariam da deduplicação:
+            // a consulta SQL só vê o que já foi gravado. Lotes anteriores já estão no banco,
+            // então a lista reinicia a cada lote e fica limitada ao tamanho dele.
+            var aceitosNoLote = new List<(Guid ItemId, float[] Vetor)>();
+
             // Agrupa por item: a decisão de duplicata é por item, não por trecho.
             for (var i = 0; i < donos.Count; i++)
             {
@@ -84,7 +90,9 @@ public class Indexador(
                 // Etapa 2 da deduplicação, avaliada no primeiro trecho de cada item (RF15).
                 if (ordem == 0)
                 {
-                    var original = await AcharMuitoSimilarAsync(vetor, item, ct);
+                    var original = AcharMuitoSimilarNoLote(vetor, aceitosNoLote)
+                                   ?? await AcharMuitoSimilarAsync(vetor, item, ct);
+
                     if (original is { } originalId)
                     {
                         item.DuplicataDe = originalId;
@@ -94,6 +102,8 @@ public class Indexador(
                             item.Titulo, originalId);
                         continue;
                     }
+
+                    aceitosNoLote.Add((item.Id, vetor));
                 }
 
                 // Item marcado como duplicata não gera trecho nenhum.
@@ -121,6 +131,22 @@ public class Indexador(
             trechosGravados, duplicatas);
 
         return trechosGravados;
+    }
+
+    /// <summary>
+    /// Compara com os itens já aceitos no lote corrente, que ainda não foram gravados.
+    /// Comparar em memória aqui é barato: o lote tem no máximo <c>TamanhoLote</c> itens.
+    /// </summary>
+    private Guid? AcharMuitoSimilarNoLote(
+        float[] vetor, List<(Guid ItemId, float[] Vetor)> aceitos)
+    {
+        var limiar = options.Value.Coleta.LimiarDuplicata;
+
+        foreach (var (itemId, outro) in aceitos)
+            if (Vetores.SimilaridadeCosseno(vetor, outro) >= limiar)
+                return itemId;
+
+        return null;
     }
 
     /// <summary>

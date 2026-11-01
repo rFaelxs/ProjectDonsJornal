@@ -95,8 +95,8 @@ docker exec -i jornal-postgres pg_restore -U jornal -d jornal --clean < data/dem
 | Marco | Entrega | Situação |
 |-------|---------|----------|
 | M0 | Solução, docker-compose, EF Core com migrations, testes rodando | ✅ |
-| M1 | `catalogo.json` completo, `validar-feeds`, ≥ 2 feeds ativos por categoria da demo | parcial |
-| M2 | `coletar` + indexação + dedup, coleta diária ligada | parcial |
+| M1 | `catalogo.json` completo, `validar-feeds`, ≥ 2 feeds ativos por categoria da demo | ✅ |
+| M2 | `coletar` + indexação + dedup, coleta diária ligada | ✅ |
 | M3 | Onboarding web, `pauta`, calibração dos limiares | |
 | M4 | Prompts v1, redator + verificador | |
 | M5 | PDF A4, ciclo agendado, página `/edicoes` | |
