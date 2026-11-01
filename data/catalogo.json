@@ -1,0 +1,99 @@
+{
+  "versao": 1,
+  "_nota": "As 4 categorias da demo (spec 09) estão completas. As outras 9 do levantamento entram no M1, junto com as URLs confirmadas pelo comando validar-feeds. Nenhuma URL vira ativa sem passar pelo validador (RN08).",
+  "categorias": [
+    {
+      "slug": "tecnologia-ia",
+      "nome": "Tecnologia e IA",
+      "descricao": "Notícias sobre inteligência artificial, desenvolvimento de software, cibersegurança, gadgets e grandes empresas de tecnologia.",
+      "subtemas": [
+        {
+          "slug": "ia",
+          "nome": "Inteligência artificial",
+          "descricao": "Modelos de IA, pesquisa, regulação e produtos baseados em IA."
+        },
+        {
+          "slug": "ciberseguranca",
+          "nome": "Cibersegurança",
+          "descricao": "Vazamentos de dados, ataques, golpes digitais e defesa."
+        },
+        {
+          "slug": "desenvolvimento",
+          "nome": "Desenvolvimento de software",
+          "descricao": "Linguagens, frameworks, lançamentos de plataformas e ferramentas de programação."
+        }
+      ],
+      "feeds": [
+        { "veiculo": "Canaltech", "url": "<a confirmar no M1>" },
+        { "veiculo": "Tecnoblog", "url": "<a confirmar no M1>" },
+        { "veiculo": "Meio Bit", "url": "<a confirmar no M1>" }
+      ]
+    },
+    {
+      "slug": "carreira-emprego",
+      "nome": "Carreira e emprego",
+      "descricao": "Concursos públicos, seleções, mercado de trabalho, salários e oportunidades de qualificação profissional no Brasil.",
+      "subtemas": [
+        {
+          "slug": "concursos",
+          "nome": "Concursos públicos",
+          "descricao": "Editais, inscrições, provas e resultados de concursos federais, estaduais e municipais."
+        },
+        {
+          "slug": "mercado-trabalho",
+          "nome": "Mercado de trabalho",
+          "descricao": "Vagas, demissões, contratações e tendências de emprego por setor."
+        }
+      ],
+      "feeds": [
+        { "veiculo": "Agência Brasil", "url": "<a confirmar no M1>" },
+        { "veiculo": "G1 Concursos e Emprego", "url": "<a confirmar no M1>" },
+        { "veiculo": "Gran Cursos Online", "url": "<a confirmar no M1>" }
+      ]
+    },
+    {
+      "slug": "economia-financas",
+      "nome": "Economia e finanças",
+      "descricao": "Inflação, juros, câmbio, reforma tributária, Bolsa de Valores e decisões de política econômica no Brasil e no mundo.",
+      "subtemas": [
+        {
+          "slug": "politica-economica",
+          "nome": "Política econômica",
+          "descricao": "Decisões do Banco Central, taxa Selic, orçamento e reformas."
+        },
+        {
+          "slug": "investimentos",
+          "nome": "Investimentos",
+          "descricao": "Bolsa, renda fixa, fundos e criptomoedas."
+        }
+      ],
+      "feeds": [
+        { "veiculo": "InfoMoney", "url": "<a confirmar no M1>" },
+        { "veiculo": "Valor Econômico", "url": "<a confirmar no M1>" },
+        { "veiculo": "Agência Brasil Economia", "url": "<a confirmar no M1>" }
+      ]
+    },
+    {
+      "slug": "esportes",
+      "nome": "Esportes",
+      "descricao": "Futebol brasileiro e internacional, além de outras modalidades, competições, resultados e transferências de atletas.",
+      "subtemas": [
+        {
+          "slug": "futebol",
+          "nome": "Futebol",
+          "descricao": "Campeonatos nacionais e internacionais, clubes, seleção e transferências."
+        },
+        {
+          "slug": "outras-modalidades",
+          "nome": "Outras modalidades",
+          "descricao": "Vôlei, basquete, automobilismo, atletismo e esportes olímpicos."
+        }
+      ],
+      "feeds": [
+        { "veiculo": "GE", "url": "<a confirmar no M1>" },
+        { "veiculo": "Lance!", "url": "<a confirmar no M1>" },
+        { "veiculo": "UOL Esporte", "url": "<a confirmar no M1>" }
+      ]
+    }
+  ]
+}

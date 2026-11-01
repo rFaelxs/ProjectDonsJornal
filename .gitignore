@@ -1,0 +1,24 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+artifacts/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.DotSettings.user
+
+# Edições geradas: o PDF é saída, não fonte. A pasta fica, o conteúdo não.
+data/edicoes/*
+!data/edicoes/.gitkeep
+
+# Material da demo gerado na véspera (spec 09, plano B): dumps e PDFs são grandes.
+data/demo/*
+!data/demo/.gitkeep
+
+# Segredos: a chave de API do provider de chat externo nunca entra no repo.
+*.env
+appsettings.Development.json
+appsettings.Local.json

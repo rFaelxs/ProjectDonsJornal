@@ -1,0 +1,73 @@
+# Infraestrutura local do Jornal Personalizado (spec 00, marco M0).
+#   docker compose up -d          sobe banco e Ollama
+#   docker compose run --rm ollama-pull   baixa os modelos (uma vez)
+
+services:
+  postgres:
+    # Imagem oficial do pgvector já com a extensão compilada — evita instalar no container.
+    image: pgvector/pgvector:pg17
+    container_name: jornal-postgres
+    environment:
+      POSTGRES_DB: jornal
+      POSTGRES_USER: jornal
+      POSTGRES_PASSWORD: jornal
+      # Collation pt-BR para ORDER BY em texto com acento sair na ordem certa. Via ICU,
+      # porque a imagem Debian não tem o locale pt_BR.UTF-8 do sistema gerado.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=pt-BR --locale=C.UTF-8 --encoding=UTF8"
+      TZ: America/Sao_Paulo
+    ports:
+      - "5432:5432"
+    volumes:
+      # Volume nomeado: o acervo nunca é apagado (RF16) e sobrevive a `docker compose down`.
+      - jornal-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jornal -d jornal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jornal-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - jornal-ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    # Para usar GPU NVIDIA, descomente. Sem isto o modelo roda em CPU e a geração
+    # fica lenta — risco listado na spec 09.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # Serviço de uso único: baixa os dois modelos e sai. Não sobe com `up`.
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: jornal-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    # bge-m3: embeddings (1024 dims, multilíngue). Trocar exige reindexar o acervo.
+    # qwen2.5:7b-instruct: modelo de chat padrão, trocável por configuração.
+    command: >
+      "ollama pull bge-m3 && ollama pull qwen2.5:7b-instruct && echo 'modelos prontos'"
+    profiles: ["setup"]
+    volumes:
+      - jornal-ollama:/root/.ollama
+
+volumes:
+  jornal-pgdata:
+  jornal-ollama:
