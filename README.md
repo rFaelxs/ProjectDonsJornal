@@ -95,8 +95,8 @@ docker exec -i jornal-postgres pg_restore -U jornal -d jornal --clean < data/dem
 | Marco | Entrega | Situação |
 |-------|---------|----------|
 | M0 | Solução, docker-compose, EF Core com migrations, testes rodando | ✅ |
-| M1 | `catalogo.json` completo, `validar-feeds`, ≥ 2 feeds ativos por categoria da demo | |
-| M2 | `coletar` + indexação + dedup, coleta diária ligada | |
+| M1 | `catalogo.json` completo, `validar-feeds`, ≥ 2 feeds ativos por categoria da demo | parcial |
+| M2 | `coletar` + indexação + dedup, coleta diária ligada | parcial |
 | M3 | Onboarding web, `pauta`, calibração dos limiares | |
 | M4 | Prompts v1, redator + verificador | |
 | M5 | PDF A4, ciclo agendado, página `/edicoes` | |
@@ -105,3 +105,17 @@ docker exec -i jornal-postgres pg_restore -U jornal -d jornal --clean < data/dem
 
 O caminho crítico é o **M2 cedo**: sem dias de acervo acumulado não existe demonstração de
 conteúdos relacionados (RF21).
+
+## Coleta diária (M2)
+
+O acervo precisa acumular dias antes da apresentação: os conteúdos relacionados (RF21) olham
+30 dias para trás. Para ligar a coleta diária no Agendador de Tarefas do Windows:
+
+```powershell
+.\scripts\registrar-coleta-diaria.ps1              # todos os dias às 05:30
+.\scripts\registrar-coleta-diaria.ps1 -Horario 04:00
+.\scripts\registrar-coleta-diaria.ps1 -Remover
+```
+
+O script publica o CLI em `artifacts/cli` e registra a tarefa apontando para lá — mais rápido
+que `dotnet run`, que recompila a cada execução. A tarefa precisa do Postgres e do Ollama de pé.

@@ -57,7 +57,7 @@ try
         "validar-feeds" => await ComandoValidarFeeds.ExecutarAsync(app.Services, argumentos, ct),
         "validar-url" => await ComandoValidarUrl.ExecutarAsync(app.Services, args, ct),
 
-        "coletar" => NaoImplementado("coletar", "M2", "spec 04"),
+        "coletar" => await ComandoColetar.ExecutarAsync(app.Services, argumentos, ct),
         "pauta" => NaoImplementado("pauta", "M3", "spec 05"),
         "calibrar" => NaoImplementado("calibrar", "M3", "spec 09"),
         "gerar" => NaoImplementado("gerar", "M5", "spec 07"),
@@ -95,8 +95,10 @@ static int Ajuda()
                         [--atualizar]         grava o resultado em feed.ativo
           validar-url <url> ...               valida URLs soltas, sem tocar no banco
 
+        Acervo (M2):
+          coletar [--sem-indexar]             lê os feeds ativos, normaliza e indexa
+
         Próximos marcos:
-          coletar                             lê os feeds ativos e indexa          (M2)
           pauta                               imprime a pauta da edição            (M3)
           calibrar --tema "..."               os 20 trechos mais próximos          (M3)
           gerar [--data] [--sem-coleta]       roda o ciclo e gera o PDF            (M5)

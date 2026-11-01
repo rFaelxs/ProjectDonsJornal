@@ -1,7 +1,9 @@
 using System.Net;
 using Jornal.Core.Catalogo;
 using Jornal.Core.Comum;
+using Jornal.Core.Coleta;
 using Jornal.Infrastructure.Catalogo;
+using Jornal.Infrastructure.Coleta;
 using Jornal.Infrastructure.Feeds;
 using Jornal.Infrastructure.Persistencia;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +40,8 @@ public static class ServicosInfraestrutura
 
         services.AddScoped<ISeedCatalogo, SeedCatalogoService>();
         services.AddScoped<IValidacaoFeeds, ValidacaoFeedsService>();
+        services.AddScoped<IColetaService, ColetaService>();
+        services.AddScoped<IIndexador, Indexador>();
 
         return services;
     }
@@ -48,31 +52,45 @@ public static class ServicosInfraestrutura
     /// </summary>
     private static void AddJornalFeeds(this IServiceCollection services, JornalOptions opcoes)
     {
-        services.AddHttpClient<IFeedValidator, FeedValidator>(FeedValidator.ClienteHttp, cliente =>
-            {
-                cliente.Timeout = TimeSpan.FromSeconds(opcoes.Coleta.TimeoutSegundos);
-                cliente.DefaultRequestHeaders.UserAgent.ParseAdd(
-                    "JornalPersonalizado/0.1 (+projeto academico; leitor de RSS)");
-                cliente.DefaultRequestHeaders.Accept.ParseAdd(
-                    "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5");
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                AllowAutoRedirect = true,
-                MaxAutomaticRedirections = 3,
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            })
-            // 1 tentativa extra, como a spec 04 pede para a coleta.
-            .AddStandardResilienceHandler(resiliencia =>
-            {
-                resiliencia.Retry.MaxRetryAttempts = 1;
-                resiliencia.AttemptTimeout.Timeout =
-                    TimeSpan.FromSeconds(opcoes.Coleta.TimeoutSegundos);
-                resiliencia.TotalRequestTimeout.Timeout =
-                    TimeSpan.FromSeconds(opcoes.Coleta.TimeoutSegundos * 3);
-                resiliencia.CircuitBreaker.SamplingDuration =
-                    TimeSpan.FromSeconds(opcoes.Coleta.TimeoutSegundos * 6);
-            });
+        services.AddHttpClient<IFeedValidator, FeedValidator>(FeedValidator.ClienteHttp,
+                cliente => ConfigurarClienteDeFeeds(cliente, opcoes))
+            .ConfigurePrimaryHttpMessageHandler(HandlerDeFeeds)
+            .AddStandardResilienceHandler(r => ConfigurarResiliencia(r, opcoes));
+
+        // O leitor da coleta compartilha a configuração do validador, mas é um cliente
+        // próprio: o circuit breaker de um não deve derrubar o outro.
+        services.AddHttpClient<IFeedReader, LeitorDeFeed>("coleta",
+                cliente => ConfigurarClienteDeFeeds(cliente, opcoes))
+            .ConfigurePrimaryHttpMessageHandler(HandlerDeFeeds)
+            .AddStandardResilienceHandler(r => ConfigurarResiliencia(r, opcoes));
+    }
+
+    private static void ConfigurarClienteDeFeeds(HttpClient cliente, JornalOptions opcoes)
+    {
+        cliente.Timeout = TimeSpan.FromSeconds(opcoes.Coleta.TimeoutSegundos);
+        cliente.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "JornalPersonalizado/0.1 (+projeto academico; leitor de RSS)");
+        cliente.DefaultRequestHeaders.Accept.ParseAdd(
+            "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5");
+    }
+
+    private static HttpClientHandler HandlerDeFeeds() => new()
+    {
+        AllowAutoRedirect = true,
+        MaxAutomaticRedirections = 3,
+        AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+    };
+
+    /// <summary>1 tentativa extra, como a spec 04 pede para a coleta.</summary>
+    private static void ConfigurarResiliencia(
+        Microsoft.Extensions.Http.Resilience.HttpStandardResilienceOptions resiliencia,
+        JornalOptions opcoes)
+    {
+        var timeout = opcoes.Coleta.TimeoutSegundos;
+        resiliencia.Retry.MaxRetryAttempts = 1;
+        resiliencia.AttemptTimeout.Timeout = TimeSpan.FromSeconds(timeout);
+        resiliencia.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(timeout * 3);
+        resiliencia.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(timeout * 6);
     }
 
     /// <summary>
