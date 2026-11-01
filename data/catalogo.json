@@ -1,6 +1,6 @@
 {
-  "versao": 1,
-  "_nota": "As 4 categorias da demo (spec 09) estão completas. As outras 9 do levantamento entram no M1, junto com as URLs confirmadas pelo comando validar-feeds. Nenhuma URL vira ativa sem passar pelo validador (RN08).",
+  "versao": 2,
+  "_nota": "As 4 categorias da demo (spec 09). Todas as URLs abaixo passaram pelo validador da spec 02 em 01/11/2026 — ver docs/feeds-levantamento.md. As outras 9 categorias do levantamento entram quando a lista for fornecida.",
   "categorias": [
     {
       "slug": "tecnologia-ia",
@@ -24,9 +24,11 @@
         }
       ],
       "feeds": [
-        { "veiculo": "Canaltech", "url": "<a confirmar no M1>" },
-        { "veiculo": "Tecnoblog", "url": "<a confirmar no M1>" },
-        { "veiculo": "Meio Bit", "url": "<a confirmar no M1>" }
+        { "veiculo": "Canaltech", "url": "https://canaltech.com.br/rss/" },
+        { "veiculo": "Tecnoblog", "url": "https://tecnoblog.net/feed/" },
+        { "veiculo": "Meio Bit", "url": "https://meiobit.com/feed/" },
+        { "veiculo": "Olhar Digital", "url": "https://olhardigital.com.br/feed/" },
+        { "veiculo": "G1 Tecnologia", "url": "https://g1.globo.com/rss/g1/tecnologia/" }
       ]
     },
     {
@@ -46,9 +48,10 @@
         }
       ],
       "feeds": [
-        { "veiculo": "Agência Brasil", "url": "<a confirmar no M1>" },
-        { "veiculo": "G1 Concursos e Emprego", "url": "<a confirmar no M1>" },
-        { "veiculo": "Gran Cursos Online", "url": "<a confirmar no M1>" }
+        { "veiculo": "Estratégia Concursos", "url": "https://www.estrategiaconcursos.com.br/blog/feed/" },
+        { "veiculo": "Gran Cursos Online", "url": "https://blog.grancursosonline.com.br/feed/" },
+        { "veiculo": "JC Concursos", "url": "https://jcconcursos.com.br/feed" },
+        { "veiculo": "Concursos no Brasil", "url": "https://www.concursosnobrasil.com.br/feed/" }
       ]
     },
     {
@@ -68,9 +71,10 @@
         }
       ],
       "feeds": [
-        { "veiculo": "InfoMoney", "url": "<a confirmar no M1>" },
-        { "veiculo": "Valor Econômico", "url": "<a confirmar no M1>" },
-        { "veiculo": "Agência Brasil Economia", "url": "<a confirmar no M1>" }
+        { "veiculo": "InfoMoney", "url": "https://www.infomoney.com.br/feed/" },
+        { "veiculo": "Agência Brasil Economia", "url": "https://agenciabrasil.ebc.com.br/rss/economia/feed.xml" },
+        { "veiculo": "G1 Economia", "url": "https://g1.globo.com/rss/g1/economia/" },
+        { "veiculo": "Seu Dinheiro", "url": "https://www.seudinheiro.com/feed/" }
       ]
     },
     {
@@ -90,9 +94,9 @@
         }
       ],
       "feeds": [
-        { "veiculo": "GE", "url": "<a confirmar no M1>" },
-        { "veiculo": "Lance!", "url": "<a confirmar no M1>" },
-        { "veiculo": "UOL Esporte", "url": "<a confirmar no M1>" }
+        { "veiculo": "GE", "url": "https://ge.globo.com/rss/ge/" },
+        { "veiculo": "Agência Brasil Esportes", "url": "https://agenciabrasil.ebc.com.br/rss/esportes/feed.xml" },
+        { "veiculo": "Gazeta Esportiva", "url": "https://www.gazetaesportiva.com/feed/" }
       ]
     }
   ]

@@ -27,6 +27,17 @@ public class BancoFixture : IAsyncLifetime
         await db.Database.MigrateAsync();
     }
 
+    /// <summary>
+    /// Zera o catálogo e tudo que depende dele. Os testes de seed precisam de um banco
+    /// limpo; os outros criam os próprios dados, então não se incomodam.
+    /// </summary>
+    public async Task LimparCatalogoAsync()
+    {
+        await using var db = CriarContexto();
+        await db.Database.ExecuteSqlRawAsync(
+            "TRUNCATE categoria, subtema, feed, feed_validacao, item, trecho CASCADE");
+    }
+
     public JornalDbContext CriarContexto()
     {
         var options = new DbContextOptionsBuilder<JornalDbContext>()
